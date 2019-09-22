@@ -1,0 +1,3 @@
+(executable
+  (name caribou)
+  (libraries core lambda-term))
