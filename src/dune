@@ -1,3 +1,4 @@
-(executable
+(library
   (name caribou)
-  (libraries core lambda-term))
+  (libraries core lwt notty sexplib lambda-term)
+  (preprocess (pps ppx_sexp_conv)))

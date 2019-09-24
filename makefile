@@ -1,5 +1,5 @@
 run: build
-	dune exec ./src/caribou.exe
+	@dune exec --no-print-directory ./bin/caribou_example.exe
 
 build:
-	dune build ./src/caribou.exe
+	@dune build --no-print-directory ./bin/caribou_example.exe

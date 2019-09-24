@@ -12,6 +12,6 @@ module type Caribou_app = sig
   val list : unit -> model list
 end
 
-module Make (A : Caribou_app) = struct
-  let run = raise (Failure "unimplemented")
+module Make (A : Caribou_app) : sig
+  val run : unit -> unit Lwt.t
 end
