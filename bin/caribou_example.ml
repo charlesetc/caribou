@@ -1,8 +1,7 @@
 open Core
 
 module Example = struct
-  type model = {pid : int; cwd : string; progress : int * int}
-  [@@deriving sexp]
+  type item = {pid : int; cwd : string; progress : int * int} [@@deriving sexp]
 
   type id = int
 
@@ -21,12 +20,16 @@ module Example = struct
 
   let list () = list
 
-  let view m =
-    Notty.I.string
-      Notty.A.(fg white ++ bg lightgreen)
-      (sexp_of_model m |> Sexplib.Sexp.to_string)
+  let view m ~selected =
+    let attr =
+      if selected then Notty.A.(bg @@ rgb_888 ~r:53 ~g:242 ~b:160)
+      else Notty.A.empty
+    in
+    Notty.I.string attr (sexp_of_item m |> Sexplib.Sexp.to_string)
+
+  let inspect = view ~selected:false
 end
 
 module App = Caribou.Make (Example)
 
-let () = Lwt.async App.run
+let () = Lwt_main.run (App.run ())

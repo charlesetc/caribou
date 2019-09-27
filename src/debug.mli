@@ -1,0 +1,1 @@
+val log : string -> unit

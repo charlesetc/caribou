@@ -1,15 +1,17 @@
 module type Caribou_app = sig
-  type model
+  type item
 
   type id
 
-  val id : model -> id
+  val id : item -> id
 
-  val view : model -> Notty.image
+  val view : item -> selected:bool -> Notty.image
 
-  val get : id -> model option
+  val inspect : item -> Notty.image
 
-  val list : unit -> model list
+  val get : id -> item option
+
+  val list : unit -> item list
 end
 
 module Make (A : Caribou_app) : sig
