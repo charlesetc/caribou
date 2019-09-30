@@ -3,7 +3,7 @@
 Caribou leverages [Notty](https://github.com/pqwy/notty) to generate
 simple terminal user interfaces.
 
-![screenshot](./images/screenshot.png | width=300px)
+<img alt='screenshot' src='./images/screenshot.png' width='300' />
 
 Caribou takes a module that satisfies the following signature
 
