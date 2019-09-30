@@ -31,6 +31,6 @@ index page.
 At the moment, you can only list the items and view them. It would be nice
 if Caribou apps could also specify ways to interact with the individual
 items and providing accompanying keybindings. For instance, in the [file
-example](./examples/file.ml) there is no way to delete, rename, or edit
+example](./examples/files.ml) there is no way to delete, rename, or edit
 a given file.
 
