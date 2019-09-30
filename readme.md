@@ -24,7 +24,7 @@ and generates a way for users to navigate and view these items.
 The functions `show` and especially `list` should both be very performant.
 If there is caching that needs to be done, that is left up to the
 application. `list`, for example, is called on every key press on the
-index.
+index page.
 
 ## Future work
 
