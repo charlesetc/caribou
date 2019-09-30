@@ -3,6 +3,8 @@
 Caribou leverages [Notty](https://github.com/pqwy/notty) to generate
 simple terminal user interfaces.
 
+![screenshot](./examples/screenshot.png)
+
 Caribou takes a module that satisfies the following signature
 
 ```ocaml

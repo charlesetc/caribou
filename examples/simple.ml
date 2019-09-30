@@ -6,6 +6,7 @@ module Example = struct
   let list =
     [ {pid = 0; cwd = "~/code"; progress = (2, 5324)}
     ; {pid = 1; cwd = "~/write"; progress = (5, 5324)}
+    ; {pid = 1; cwd = "~/test"; progress = (5, 5324)}
     ; {pid = 2; cwd = "~/build"; progress = (23, 5324)} ]
 
   let list () = list
