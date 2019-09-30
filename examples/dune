@@ -1,0 +1,11 @@
+(executable
+  (name files)
+  (modules files)
+  (libraries caribou notty sexplib core)
+  (preprocess (pps ppx_sexp_conv)))
+
+(executable
+  (name simple)
+  (modules simple)
+  (libraries caribou notty sexplib core)
+  (preprocess (pps ppx_sexp_conv)))

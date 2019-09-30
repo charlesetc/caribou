@@ -13,3 +13,9 @@ make a list of things, choose one (via fuzzy finding) and then inspect it
 (basically call a print or sexp\_of function on it.)
 
 This is the goal.
+
+
+# Task
+
+* Fix the cursor when you go back.
+* Make it so you can run a Caribou app without taking over the alternate screen
