@@ -20,7 +20,16 @@ module type Caribou_app = sig
 end
 
 module Action = struct
-  type t = Cursor_down | Cursor_up | Chose_cursor | Back | Quit
+  type t =
+    | Cursor_down
+    | Cursor_up
+    | Chose_cursor
+    | Back
+    | Quit
+    | Scroll_up
+    | Scroll_down
+    | Page_up
+    | Page_down
 
   let of_event = function
     | `Key (`ASCII 'k', []) | `Key (`Arrow `Up, []) ->
@@ -29,8 +38,16 @@ module Action = struct
         Some Cursor_down
     | `Key (`Enter, []) | `Key (`ASCII 'M', [`Ctrl]) ->
         Some Chose_cursor
-    | `Key (`Escape, []) ->
+    | `Key (`Backspace, []) | `Key (`Escape, []) ->
         Some Back
+    | `Key (`ASCII 'U', [`Ctrl]) | `Key (`Page `Up, []) ->
+        Some Page_up
+    | `Key (`ASCII 'D', [`Ctrl]) | `Key (`Page `Down, []) ->
+        Some Page_down
+    | `Key (`Arrow `Down, [`Ctrl]) | `Key (`ASCII 'N', [`Ctrl]) ->
+        Some Scroll_down
+    | `Key (`Arrow `Up, [`Ctrl]) | `Key (`ASCII 'P', [`Ctrl]) ->
+        Some Scroll_up
     | `Key (`ASCII 'q', []) | `Key (`ASCII 'C', [`Ctrl]) ->
         Some Quit
     | _ ->
@@ -44,7 +61,7 @@ module type Display = sig
 
   val quit : t -> 'a Lwt.t
 
-  val update : t -> Notty.image -> unit Lwt.t
+  val render : t -> Notty.image -> unit Lwt.t
 
   val events : t -> [Notty.Unescape.event | `Resize of int * int] Lwt_stream.t
 end
@@ -54,9 +71,13 @@ module State (A : Caribou_app) (D : Display) = struct
     type t = List of A.item list | Show of A.item
   end
 
-  type t = {mutable view : View.t; mutable cursor : int; display : D.t}
+  type t =
+    { mutable view : View.t
+    ; mutable cursor : int
+    ; mutable scroll : int
+    ; display : D.t }
 
-  let init ~display = {view = List []; cursor = 0; display}
+  let init ~display = {view = List []; cursor = 0; scroll = 0; display}
 
   let show t =
     match t.view with
@@ -70,8 +91,18 @@ module State (A : Caribou_app) (D : Display) = struct
     | Show item ->
         A.inspect item
 
+  let scroll t image = I.vcrop t.scroll (-1) image
+
   let update t (action : Action.t) =
     match (t.view, action) with
+    | _, Scroll_up ->
+        Lwt.return @@ (t.scroll <- t.scroll - 1)
+    | _, Scroll_down ->
+        Lwt.return @@ (t.scroll <- t.scroll + 1)
+    | _, Page_up ->
+        Lwt.return @@ (t.scroll <- t.scroll - 10)
+    | _, Page_down ->
+        Lwt.return @@ (t.scroll <- t.scroll + 10)
     | _, Quit ->
         D.quit t.display
     | List items, Cursor_down ->
@@ -92,7 +123,10 @@ module State (A : Caribou_app) (D : Display) = struct
         (* unable to handle event... ? *)
         Lwt.return ()
 
-  let render t = D.update t.display (show t)
+  let render t =
+    let image = show t in
+    let image = scroll t image in
+    D.render t.display image
 end
 
 module Fullscreen_display : Display = struct
@@ -102,7 +136,7 @@ module Fullscreen_display : Display = struct
 
   let quit _ = Caml.exit 0
 
-  let update t image = Notty_lwt.Term.image t image
+  let render t image = Notty_lwt.Term.image t image
 
   let events t = Notty_lwt.Term.events t
 end
@@ -125,7 +159,7 @@ module Tty_display : Display = struct
     let* () = move_cursor_back t in
     Tty.show_cursor true ; Tty.echo true ; Tty.raw false ; Caml.exit 0
 
-  let update t image =
+  let render t image =
     let* () = move_cursor_back t in
     t.last_height <-
       Some (Int.max (Option.value t.last_height ~default:0) (I.height image)) ;
@@ -174,10 +208,16 @@ module Make (App : Caribou_app) (Display : Display) = struct
 end
 
 module Notty_helpers = struct
+  let ( << ) f g x = Fn.compose g f x
+
   let image_of_string a t =
-    t
-    |> Str.global_replace (Str.regexp_string "\t") "    "
-    |> String.split ~on:'\n'
-    |> List.map ~f:(I.string a)
-    |> List.fold ~init:I.empty ~f:I.( <-> )
+    let lines =
+      t
+      |> Str.global_replace (Str.regexp_string "\t") "    "
+      |> String.split ~on:'\n'
+    in
+    let combine =
+      List.map ~f:(I.string a) << List.fold ~init:I.empty ~f:I.( <-> )
+    in
+    try combine lines with _ -> List.map lines ~f:String.escaped |> combine
 end

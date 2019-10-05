@@ -17,6 +17,7 @@ make a list of things, choose one (via fuzzy finding) and then inspect it
 * Paging
 * Searching
 * Fuzzy finding
+  - recursively?
 * Represent a tree structure, not just a list structure.
 * Make a `wrap` helper command
 
