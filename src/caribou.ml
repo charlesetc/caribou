@@ -42,7 +42,7 @@ module type Display = sig
 
   val init : unit -> t
 
-  val quit : unit -> 'a
+  val quit : t -> 'a Lwt.t
 
   val update : t -> Notty.image -> unit Lwt.t
 
@@ -58,27 +58,6 @@ module State (A : Caribou_app) (D : Display) = struct
 
   let init ~display = {view = List []; cursor = 0; display}
 
-  let update t (action : Action.t) =
-    match (t.view, action) with
-    | _, Quit ->
-        D.quit ()
-    | List items, Cursor_down ->
-        let length = List.length items in
-        t.cursor <-
-          (if t.cursor >= length - 1 then length - 1 else t.cursor + 1)
-    | List _, Cursor_up ->
-        t.cursor <- (if t.cursor <= 0 then 0 else t.cursor - 1)
-    | List items, Chose_cursor ->
-        let chosen = List.nth_exn items t.cursor in
-        t.view <- Show chosen
-    | List _, Back ->
-        D.quit ()
-    | Show _, Back ->
-        t.view <- List []
-    | Show _, _ ->
-        (* unable to handle event... ? *)
-        ()
-
   let show t =
     match t.view with
     | List _ ->
@@ -90,6 +69,28 @@ module State (A : Caribou_app) (D : Display) = struct
         |> snd
     | Show item ->
         A.inspect item
+
+  let update t (action : Action.t) =
+    match (t.view, action) with
+    | _, Quit ->
+        D.quit t.display
+    | List items, Cursor_down ->
+        let length = List.length items in
+        Lwt.return
+        @@ ( t.cursor <-
+             (if t.cursor >= length - 1 then length - 1 else t.cursor + 1) )
+    | List _, Cursor_up ->
+        Lwt.return @@ (t.cursor <- (if t.cursor <= 0 then 0 else t.cursor - 1))
+    | List items, Chose_cursor ->
+        let chosen = List.nth_exn items t.cursor in
+        Lwt.return @@ (t.view <- Show chosen)
+    | List _, Back ->
+        D.quit t.display
+    | Show _, Back ->
+        Lwt.return @@ (t.view <- List [])
+    | Show _, _ ->
+        (* unable to handle event... ? *)
+        Lwt.return ()
 
   let render t = D.update t.display (show t)
 end
@@ -112,18 +113,20 @@ module Tty_display : Display = struct
   let init () =
     Tty.echo false ; Tty.raw true ; Tty.show_cursor false ; {last_height = None}
 
-  let quit () =
+  let move_cursor_back t =
+    match t.last_height with
+    | None ->
+        Lwt.return ()
+    | Some l ->
+        log (sprintf "last height was %d" l) ;
+        Notty_lwt.move_cursor (`By (0, -1 * l))
+
+  let quit t =
+    let* () = move_cursor_back t in
     Tty.show_cursor true ; Tty.echo true ; Tty.raw false ; Caml.exit 0
 
   let update t image =
-    let* () =
-      match t.last_height with
-      | None ->
-          Lwt.return ()
-      | Some l ->
-          log (sprintf "last height was %d" l) ;
-          Notty_lwt.move_cursor (`By (0, -1 * l))
-    in
+    let* () = move_cursor_back t in
     t.last_height <-
       Some (Int.max (Option.value t.last_height ~default:0) (I.height image)) ;
     let image = I.vsnap ~align:`Top (Option.value_exn t.last_height) image in
@@ -159,7 +162,13 @@ module Make (App : Caribou_app) (Display : Display) = struct
     let events = Display.events state.display in
     Lwt_stream.iter_s
       (fun event ->
-        Action.of_event event |> Option.iter ~f:(State.update state) ;
+        let* () =
+          match Action.of_event event with
+          | Some action ->
+              State.update state action
+          | None ->
+              Lwt.return ()
+        in
         State.render state)
       events
 end
