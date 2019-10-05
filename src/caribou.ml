@@ -31,7 +31,7 @@ module Action = struct
         Some Chose_cursor
     | `Key (`Escape, []) ->
         Some Back
-    | `Key (`ASCII 'q', []) ->
+    | `Key (`ASCII 'q', []) | `Key (`ASCII 'C', [`Ctrl]) ->
         Some Quit
     | _ ->
         None
@@ -41,6 +41,8 @@ module type Display = sig
   type t
 
   val init : unit -> t
+
+  val quit : unit -> 'a
 
   val update : t -> Notty.image -> unit Lwt.t
 
@@ -56,13 +58,10 @@ module State (A : Caribou_app) (D : Display) = struct
 
   let init ~display = {view = List []; cursor = 0; display}
 
-  let quit _ =
-    Tty.show_cursor true ; Tty.echo true ; Tty.raw false ; Caml.exit 0
-
   let update t (action : Action.t) =
     match (t.view, action) with
     | _, Quit ->
-        quit t
+        D.quit ()
     | List items, Cursor_down ->
         let length = List.length items in
         t.cursor <-
@@ -73,7 +72,7 @@ module State (A : Caribou_app) (D : Display) = struct
         let chosen = List.nth_exn items t.cursor in
         t.view <- Show chosen
     | List _, Back ->
-        quit t
+        D.quit ()
     | Show _, Back ->
         t.view <- List []
     | Show _, _ ->
@@ -100,6 +99,8 @@ module Fullscreen_display : Display = struct
 
   let init () = Notty_lwt.Term.create ~mouse:false ()
 
+  let quit _ = Caml.exit 0
+
   let update t image = Notty_lwt.Term.image t image
 
   let events t = Notty_lwt.Term.events t
@@ -111,12 +112,16 @@ module Tty_display : Display = struct
   let init () =
     Tty.echo false ; Tty.raw true ; Tty.show_cursor false ; {last_height = None}
 
+  let quit () =
+    Tty.show_cursor true ; Tty.echo true ; Tty.raw false ; Caml.exit 0
+
   let update t image =
     let* () =
       match t.last_height with
       | None ->
           Lwt.return ()
       | Some l ->
+          log (sprintf "last height was %d" l) ;
           Notty_lwt.move_cursor (`By (0, -1 * l))
     in
     t.last_height <-

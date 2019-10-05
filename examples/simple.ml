@@ -4,9 +4,9 @@ module Example = struct
   type item = {pid : int; cwd : string; progress : int * int} [@@deriving sexp]
 
   let list =
-    [ {pid = 0; cwd = "~/code"; progress = (2, 5324)}
+    [ {pid = 1; cwd = "~/test"; progress = (5, 5324)}
+    ; {pid = 0; cwd = "~/code"; progress = (2, 5324)}
     ; {pid = 1; cwd = "~/write"; progress = (5, 5324)}
-    ; {pid = 1; cwd = "~/test"; progress = (5, 5324)}
     ; {pid = 2; cwd = "~/build"; progress = (23, 5324)} ]
 
   let list () = list
@@ -20,7 +20,7 @@ module Example = struct
 
   let inspect m =
     let text =
-      Unix.open_process_in (sprintf "ls %s | head" m.cwd)
+      Unix.open_process_in (sprintf "ls %s 2>/dev/null | head" m.cwd)
       |> In_channel.input_all
     in
     let attr = Notty.A.(bg blue) in

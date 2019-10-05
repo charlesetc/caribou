@@ -1,6 +1,10 @@
 
 # Executing
 
+# comment this out to run simple with just 'make'
+first: files
+
+
 simple: build_simple
 	@dune exec --no-print-directory ./examples/simple.exe
 
