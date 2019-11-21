@@ -2,7 +2,7 @@
 # Executing
 
 # comment this out to run simple with just 'make'
-first: files
+# first: files
 
 
 simple: build_simple

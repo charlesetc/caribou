@@ -9,9 +9,7 @@ module type Caribou_app = sig
 end
 
 module type Display
-
 module Fullscreen_display : Display
-
 module Tty_display : Display
 
 module Make (A : Caribou_app) (D : Display) : sig

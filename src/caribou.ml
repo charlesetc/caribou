@@ -3,7 +3,6 @@ open Base
 module I = Notty.I
 module Attr = Notty.A
 open Notty.Infix
-open! Debug
 
 module type Caribou_app = sig
   type item
@@ -148,7 +147,6 @@ module Tty_display : Display = struct
     | None ->
         Lwt.return ()
     | Some l ->
-        log (sprintf "last height was %d" l) ;
         Notty_lwt.move_cursor (`By (0, -1 * l))
 
   let quit t =
