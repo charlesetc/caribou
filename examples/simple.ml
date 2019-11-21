@@ -27,6 +27,6 @@ module Example = struct
     Caribou.Notty_helpers.image_of_string attr text
 end
 
-module App = Caribou.Make (Example) (Caribou.Tty_display)
+module App = Caribou.Make (Example) (Caribou.Display.Tty)
 
 let () = Lwt_main.run (App.run ())
