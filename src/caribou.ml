@@ -5,10 +5,6 @@ module Attr = Notty.A
 open Notty.Infix
 open! Debug
 
-let stdin = Stdio.stdin
-
-(* let stdout = Stdio.stdout *)
-
 module type Caribou_app = sig
   type item
 
@@ -168,22 +164,23 @@ module Tty_display : Display = struct
 
   let events _ =
     let unescape = Notty.Unescape.create () in
-    Lwt_stream.from_direct (fun () ->
-        match Stdio.In_channel.input_char stdin with
-        | None ->
+    let stdin_stream = Lwt_io.read_chars Lwt_io.stdin in
+    Lwt_stream.from (fun () ->
+        let+ _ = Lwt_stream.peek stdin_stream in
+        let bytes =
+          Lwt_stream.get_available stdin_stream |> Bytes.of_char_list
+        in
+        Notty.Unescape.input unescape bytes 0 (Bytes.length bytes) ;
+        match Notty.Unescape.next unescape with
+        | `End ->
             None
-        | Some c -> (
-            Notty.Unescape.input unescape (Bytes.of_char_list [c]) 0 1 ;
-            match Notty.Unescape.next unescape with
-            | `End ->
-                None
-            | `Await ->
-                (* if this happens, you'll probably want to make a recursive
-                 * function that waits until there's a key to send and only
-                 * then returns to Lwt_stream. *)
-                raise (Failure "unimplemented - hasn't happened yet")
-            | #Notty.Unescape.event as event ->
-                Some event ))
+        | `Await ->
+            (* if this happens, you'll probably want to make a recursive
+             * function that waits until there's a key to send and only
+             * then returns to Lwt_stream. *)
+            raise (Failure "unimplemented - hasn't happened yet")
+        | #Notty.Unescape.event as event ->
+            Some event)
 end
 
 module Make (App : Caribou_app) (Display : Display) = struct
