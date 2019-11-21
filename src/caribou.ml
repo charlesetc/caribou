@@ -48,18 +48,18 @@ module State (A : Caribou_app) (D : Display) = struct
     | Show item ->
         A.inspect item
 
-  let scroll t image = I.vcrop t.scroll (-1) image
+  let scroll t image = I.vcrop (-1 * t.scroll) (-1) image
 
   let update t (action : Action.t) =
     match (t.view, action) with
     | _, Scroll_up ->
-        Lwt.return @@ (t.scroll <- t.scroll - 1)
-    | _, Scroll_down ->
         Lwt.return @@ (t.scroll <- t.scroll + 1)
+    | _, Scroll_down ->
+        Lwt.return @@ (t.scroll <- t.scroll - 1)
     | _, Page_up ->
-        Lwt.return @@ (t.scroll <- t.scroll - 10)
-    | _, Page_down ->
         Lwt.return @@ (t.scroll <- t.scroll + 10)
+    | _, Page_down ->
+        Lwt.return @@ (t.scroll <- t.scroll - 10)
     | _, Quit ->
         D.quit t.display
     | List items, Cursor_down ->
