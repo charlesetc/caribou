@@ -9,10 +9,13 @@ module Example = struct
   let rec list dir =
     Sys.ls_dir dir
     |> List.map ~f:(fun entry ->
-           if Sys.is_file_exn entry then File entry
-           else Dir (entry, list (Filename.concat dir entry)))
+           match Sys.is_directory entry with
+           | `Yes ->
+               Dir (entry, list (Filename.concat dir entry))
+           | `No | `Unknown ->
+               File entry)
 
-  let list = list "."
+  let list () = list "."
 
   let children = function File _ -> [] | Dir (_, c's) -> c's
 
@@ -29,11 +32,12 @@ module Example = struct
         let topline = I.string A.(fg black) name </> hr in
         topline <-> image <-> hr
 
-  let inspect m =
-    let text = Stdio.In_channel.read_all m in
+  let inspect item =
+    let name = match item with File name -> name | Dir (name, _) -> name in
+    let text = Stdio.In_channel.read_all name in
     Caribou.Notty_helpers.image_of_string A.empty text
 end
 
-module App = Caribou.Tree.Make (Example) (Caribou.Fullscreen_display)
+module App = Caribou.Tree.Make (Example) (Caribou.Display.Fullscreen)
 
 let () = Lwt_main.run (App.run ())

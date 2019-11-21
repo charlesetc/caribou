@@ -135,11 +135,23 @@ module Tree = struct
 
     type t =
       { mutable view : View.t
-      ; mutable cursor : int
+      ; mutable cursor : int list
       ; mutable scroll : int
       ; display : D.t }
 
-    let init ~display = {view = List []; cursor = 0; scroll = 0; display}
+    let init ~display = {view = List []; cursor = [0]; scroll = 0; display}
+
+    let image_of_items t items =
+      let rev_cursor = List.rev t.cursor in
+      let selected c = List.equal Int.equal c rev_cursor in
+      let rec lp items cursor_base =
+        List.fold items ~init:(0, I.empty) ~f:(fun (i, acc) item ->
+            let position = i :: cursor_base in
+            let children = lp (A.children item) position |> snd in
+            let image = A.show ~children item ~selected:(selected position) in
+            (i + 1, acc <-> image))
+      in
+      lp items [] |> snd
 
     let show t =
       match t.view with
@@ -147,24 +159,57 @@ module Tree = struct
           (* this is weird *)
           let items = A.list () in
           t.view <- List items ;
-          List.fold items ~init:(0, I.empty) ~f:(fun (i, acc) item ->
-              (i + 1, acc <-> A.show item ~selected:(i = t.cursor)))
-          |> snd
+          image_of_items t items
       | Show item ->
           A.inspect item
 
     let scroll t image = I.vcrop (-1 * t.scroll) (-1) image
 
-    (* TODO: note for tomorrow
-     *
-     *
-     * The challenge at hand is what state we should store for the cursor...
-     * We've so far gone with an integer index - I think this needs to be generalized
-     * to a path. (a list of integers)
-     *
-     * ...and it'd be nice not to have to copy all this code.
-     *
-     * *)
+    module Cursor = struct
+      (* try to combine this with decrement too *)
+      let rec increment items = function
+        | [] ->
+            raise (Failure "cursor cannot be empty")
+        | [n] ->
+            let length = List.length items in
+            if n + 1 = length then `Bubble_up else `Done [n + 1]
+        | n :: rest -> (
+          match increment (A.children (List.nth_exn items n)) rest with
+          | `Done rest ->
+              `Done (n :: rest)
+          | `Bubble_up ->
+              increment items [n] )
+
+      (* If a bubble up hits the top level, keep the cursor where it is *)
+      let increment items cursor =
+        match increment items cursor with `Bubble_up -> cursor | `Done x -> x
+
+      let rec decrement items = function
+        | [] ->
+            raise (Failure "cursor cannot be empty")
+        | [n] ->
+            if n - 1 < 0 then `Bubble_up else `Done [n - 1]
+        | n :: rest -> (
+          match decrement (A.children (List.nth_exn items n)) rest with
+          | `Done rest ->
+              `Done (n :: rest)
+          | `Bubble_up ->
+              decrement items [n] )
+
+      (* If a bubble up hits the top level, keep the cursor where it is *)
+      let decrement items cursor =
+        match decrement items cursor with `Bubble_up -> cursor | `Done x -> x
+
+      let rec index items = function
+        | [] ->
+            raise (Failure "cursor cannot be empty")
+        | [n] ->
+            List.nth_exn items n
+        | n :: rest ->
+            let parent = List.nth_exn items n in
+            index (A.children parent) rest
+    end
+
     let update t (action : Action.t) =
       match (t.view, action) with
       | _, Scroll_up ->
@@ -178,16 +223,12 @@ module Tree = struct
       | _, Quit ->
           D.quit t.display
       | List items, Cursor_down ->
-          let length = List.length items in
-          Lwt.return
-          @@ ( t.cursor <-
-               (if t.cursor >= length - 1 then length - 1 else t.cursor + 1) )
-      | List _, Cursor_up ->
-          Lwt.return
-          @@ (t.cursor <- (if t.cursor <= 0 then 0 else t.cursor - 1))
+          Lwt.return (t.cursor <- Cursor.increment items t.cursor)
+      | List items, Cursor_up ->
+          Lwt.return @@ (t.cursor <- Cursor.decrement items t.cursor)
       | List items, Chose_cursor ->
-          let chosen = List.nth_exn items t.cursor in
-          Lwt.return @@ (t.view <- Show chosen)
+          let item = Cursor.index items t.cursor in
+          Lwt.return @@ (t.view <- Show item)
       | List _, Back ->
           D.quit t.display
       | Show _, Back ->

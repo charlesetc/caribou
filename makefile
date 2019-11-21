@@ -1,8 +1,9 @@
 
 # Executing
 
-# comment this out to run simple with just 'make'
+# comment or uncomment to choose start
 # first: files
+first: directories
 
 
 simple: build_simple
@@ -10,6 +11,9 @@ simple: build_simple
 
 files: build_files
 	@dune exec --no-print-directory ./examples/files.exe
+
+directories: build_directories
+	@dune exec --no-print-directory ./examples/directories.exe
 
 
 
@@ -20,3 +24,6 @@ build_simple:
 
 build_files:
 	@dune build --no-print-directory ./examples/files.exe
+
+build_directories:
+	@dune build --no-print-directory ./examples/directories.exe
