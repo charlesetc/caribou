@@ -115,6 +115,7 @@ module Make (App : App) (Display : Display) = struct
       events
 end
 
+(* TODO: un-duplicate all this code *)
 module Tree = struct
   module type App = sig
     type item
@@ -166,35 +167,56 @@ module Tree = struct
     let scroll t image = I.vcrop (-1 * t.scroll) (-1) image
 
     module Cursor = struct
-      (* try to combine this with decrement too *)
-      let rec increment items = function
+      let rec string_of_cursor = function
         | [] ->
-            raise (Failure "cursor cannot be empty")
-        | [n] ->
-            let length = List.length items in
-            if n + 1 = length then `Bubble_up else `Done [n + 1]
+            "[]"
+        | x :: rest ->
+            Int.to_string x ^ " :: " ^ string_of_cursor rest
+
+      let rec increment items =
+        let children items n = A.children (List.nth_exn items n) in
+        let attempt_index items i =
+          if List.length items > i then `Done [i] else `Bubble_up
+        in
+        function
+        | [n] -> (
+          match children items n with
+          | [] ->
+              attempt_index items (n + 1)
+          | _ ->
+              `Done [n; 0] )
         | n :: rest -> (
-          match increment (A.children (List.nth_exn items n)) rest with
+          match increment (children items n) rest with
           | `Done rest ->
               `Done (n :: rest)
           | `Bubble_up ->
-              increment items [n] )
+              attempt_index items (n + 1) )
+        | [] ->
+            raise (Failure "cursor cannot be empty")
 
       (* If a bubble up hits the top level, keep the cursor where it is *)
       let increment items cursor =
         match increment items cursor with `Bubble_up -> cursor | `Done x -> x
 
-      let rec decrement items = function
-        | [] ->
-            raise (Failure "cursor cannot be empty")
-        | [n] ->
-            if n - 1 < 0 then `Bubble_up else `Done [n - 1]
+      let rec decrement items =
+        let children items n = A.children (List.nth_exn items n) in
+        function
+        | [n] -> (
+          match List.nth items (n - 1) |> Option.map ~f:A.children with
+          | Some [] ->
+              `Done [n - 1]
+          | Some children ->
+              `Done [n - 1; List.length children - 1]
+          | None ->
+              `Bubble_up )
         | n :: rest -> (
-          match decrement (A.children (List.nth_exn items n)) rest with
+          match decrement (children items n) rest with
           | `Done rest ->
               `Done (n :: rest)
           | `Bubble_up ->
-              decrement items [n] )
+              `Done [n] )
+        | [] ->
+            raise (Failure "cursor cannot be empty")
 
       (* If a bubble up hits the top level, keep the cursor where it is *)
       let decrement items cursor =
@@ -223,9 +245,13 @@ module Tree = struct
       | _, Quit ->
           D.quit t.display
       | List items, Cursor_down ->
-          Lwt.return (t.cursor <- Cursor.increment items t.cursor)
+          let cursor = Cursor.increment items t.cursor in
+          Debug.log "cursor %s" (Cursor.string_of_cursor cursor) ;
+          Lwt.return @@ (t.cursor <- cursor)
       | List items, Cursor_up ->
-          Lwt.return @@ (t.cursor <- Cursor.decrement items t.cursor)
+          let cursor = Cursor.decrement items t.cursor in
+          Debug.log "cursor %s" (Cursor.string_of_cursor cursor) ;
+          Lwt.return @@ (t.cursor <- cursor)
       | List items, Chose_cursor ->
           let item = Cursor.index items t.cursor in
           Lwt.return @@ (t.view <- Show item)
@@ -266,3 +292,4 @@ module Tree = struct
 end
 
 module Notty_helpers = Notty_helpers
+module Debug = Debug

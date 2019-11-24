@@ -43,3 +43,5 @@ module Tree : sig
 end
 
 module Notty_helpers : module type of Notty_helpers
+
+module Debug : module type of Debug

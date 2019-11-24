@@ -9,10 +9,11 @@ module Example = struct
   let rec list dir =
     Sys.ls_dir dir
     |> List.map ~f:(fun entry ->
+           let entry = Filename.concat dir entry in
            match Sys.is_directory entry with
            | `Yes ->
-               Dir (entry, list (Filename.concat dir entry))
-           | `No | `Unknown ->
+               Dir (entry, list entry)
+           | `Unknown | `No ->
                File entry)
 
   let list () = list "."
@@ -22,20 +23,25 @@ module Example = struct
   let show ~children ~selected = function
     | File name ->
         let a = if selected then A.(st underline ++ fg magenta) else A.empty in
-        I.string A.empty "* " <|> I.string a name
+        I.string A.empty "* " <|> I.string a (Filename.basename name)
     | Dir (name, _) ->
         let a = if selected then A.(bg blue) else A.empty in
         let column = I.char a ' ' 1 (I.height children) in
         let image = column <|> children <|> column in
         let hr = I.char a ' ' (I.width image) 1 in
         (* TODO: Make it centered in the future *)
-        let topline = I.string A.(fg black) name </> hr in
+        let topline =
+          I.string A.(fg black) (Filename.basename name ^ "/") </> hr
+        in
         topline <-> image <-> hr
 
-  let inspect item =
-    let name = match item with File name -> name | Dir (name, _) -> name in
-    let text = Stdio.In_channel.read_all name in
-    Caribou.Notty_helpers.image_of_string A.empty text
+  let inspect = function
+    | File name ->
+        let text = Stdio.In_channel.read_all name in
+        Caribou.Notty_helpers.image_of_string A.empty text
+    | Dir (name, _) ->
+        Caribou.Notty_helpers.image_of_string A.empty
+          (sprintf "Cannot cat: %s is a directory" name)
 end
 
 module App = Caribou.Tree.Make (Example) (Caribou.Display.Fullscreen)

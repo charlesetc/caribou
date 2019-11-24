@@ -14,11 +14,9 @@ make a list of things, choose one (via fuzzy finding) and then inspect it
 
 # Tasks
 
-* Paging
 * Searching
 * Fuzzy finding
-  - recursively?
-* Represent a tree structure, not just a list structure.
-* Make a `wrap` helper command
-
-    val wrap : int -> Notty.image -> Notty.image
+  - recursively? <- not sure what "recursively" means lol
+* Scroll-to-cursor on move.
+* Support text-wrapping via a helper function.
+* Block layout
