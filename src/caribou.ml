@@ -22,16 +22,10 @@ module Display = struct
 end
 
 module Tree = struct
-  module Context = struct
-    (* Not sure if this context is a good idea: could also pass
-     * arguments individually in [show] *)
-    type t = {children : Notty.image; selected : bool; collapsed : bool}
-  end
-
   module type App = sig
     type item
 
-    val show : Context.t -> item -> Notty.image
+    val show : children:Notty.image -> selected:bool -> item -> Notty.image
 
     val children : item -> item list
 
@@ -60,8 +54,7 @@ module Tree = struct
             let position = i :: cursor_base in
             let selected = List.equal Int.equal position rev_cursor in
             let children = lp (A.children item) position |> snd in
-            let context = {Context.children; selected; collapsed = false} in
-            let image = A.show context item in
+            let image = A.show ~children ~selected item in
             (i + 1, acc <-> image))
       in
       lp items [] |> snd
@@ -217,8 +210,7 @@ module Make (A : App) (D : Display.S) = struct
   module App : Tree.App = struct
     include A
 
-    let show (context : Tree.Context.t) item =
-      show item ~selected:context.selected
+    let show ~children:_ ~selected item = show ~selected item
 
     let children _ = []
   end

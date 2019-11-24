@@ -25,14 +25,10 @@ module Make (A : App) (D : Display.S) : sig
 end
 
 module Tree : sig
-  module Context : sig
-    type t = {children : Notty.image; selected : bool; collapsed : bool}
-  end
-
   module type App = sig
     type item
 
-    val show : Context.t -> item -> Notty.image
+    val show : children:Notty.image -> selected:bool -> item -> Notty.image
 
     val children : item -> item list
 
