@@ -20,18 +20,25 @@ module Example = struct
 
   let children = function File _ -> [] | Dir (_, c's) -> c's
 
-  let show ~children ~selected = function
+  let show (context : Caribou.Tree.Context.t) = function
     | File name ->
-        let a = if selected then A.(st underline ++ fg magenta) else A.empty in
+        let a =
+          if context.selected then A.(st underline ++ fg magenta) else A.empty
+        in
         I.string A.empty "* " <|> I.string a (Filename.basename name)
     | Dir (name, _) ->
-        let a = if selected then A.(bg blue) else A.empty in
-        let column = I.char a ' ' 1 (I.height children) in
-        let image = column <|> children <|> column in
+        let a =
+          if context.selected then A.(bg blue ++ fg white) else A.empty
+        in
+        let column = I.char a ' ' 1 (I.height context.children) in
+        let image = column <|> context.children <|> column in
         let hr = I.char a ' ' (I.width image) 1 in
-        (* TODO: Make it centered in the future *)
+        let title = I.string a (Filename.basename name ^ "/") in
         let topline =
-          I.string A.(fg black) (Filename.basename name ^ "/") </> hr
+          if context.selected then
+            let padding = I.void ((I.width image - I.width title) / 2) 1 in
+            padding <|> title </> hr
+          else title </> hr
         in
         topline <-> image <-> hr
 

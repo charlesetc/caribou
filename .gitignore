@@ -2,3 +2,5 @@
 **/*.rs.bk
 *.merlin
 _build/
+.hg/
+.hgignore

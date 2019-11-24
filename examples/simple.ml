@@ -4,7 +4,7 @@ module Example = struct
   type item = {pid : int; cwd : string; progress : int * int} [@@deriving sexp]
 
   let list =
-    [ {pid = 1; cwd = "~/test"; progress = (5, 5324)}
+    [ {pid = 1; cwd = "~/desk"; progress = (5, 5324)}
     ; {pid = 0; cwd = "~/code"; progress = (2, 5324)}
     ; {pid = 1; cwd = "~/write"; progress = (5, 5324)}
     ; {pid = 2; cwd = "~/build"; progress = (23, 5324)} ]
