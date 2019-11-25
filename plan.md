@@ -25,3 +25,5 @@ call a print or sexp\_of function on it.)
 
 * Once you've scrolled in the List view, the scroll stays the same in the Show
   view, even though it can be much shorter.
+* "List.nth\_exn 0 called on list of length 0" when list () returns []
+* Doesn't work when executed from vim with :make

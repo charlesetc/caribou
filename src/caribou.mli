@@ -10,8 +10,6 @@ module type App = sig
   val list : unit -> item list
 end
 
-module type Display
-
 module Display : sig
   module type S
 

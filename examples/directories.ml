@@ -44,7 +44,7 @@ module Example = struct
         Caribou.Notty_helpers.image_of_string A.empty text
     | Dir (name, _) ->
         Caribou.Notty_helpers.image_of_string A.empty
-          (sprintf "Cannot cat: %s is a directory" name)
+          (sprintf "%s is a directory!" name)
 end
 
 module App = Caribou.Tree.Make (Example) (Caribou.Display.Fullscreen)
