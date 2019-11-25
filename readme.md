@@ -1,6 +1,7 @@
 # Caribou
 
-Caribou is an OCaml library for generating terminal user interfaces using [Notty](https://github.com/pqwy/notty).
+Caribou is an OCaml library for generating terminal user interfaces
+using [Notty](https://github.com/pqwy/notty).
 
 <img alt='screenshot' src='./images/screenshot.png' width='500' />
 
