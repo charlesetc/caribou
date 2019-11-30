@@ -1,3 +1,10 @@
 (library
   (name caribou)
-  (libraries base lwt notty notty.lwt lambda-term str))
+  (preprocess (pps ppx_deriving.eq))
+  (libraries
+    base
+    lwt
+    notty
+    notty.lwt
+    lambda-term
+    str))

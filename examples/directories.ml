@@ -38,13 +38,16 @@ module Example = struct
         in
         topline <-> image <-> hr
 
-  let inspect = function
-    | File name ->
-        let text = Stdio.In_channel.read_all name in
-        Caribou.Notty_helpers.image_of_string A.empty text
-    | Dir (name, _) ->
-        Caribou.Notty_helpers.image_of_string A.empty
-          (sprintf "%s is a directory!" name)
+  (* let inspect = function *)
+  (* | File name -> *)
+  (* let text = Stdio.In_channel.read_all name in *)
+  (* Caribou.Notty_helpers.image_of_string A.empty text *)
+  (* | Dir (name, _) -> *)
+  (* Caribou.Notty_helpers.image_of_string A.empty *)
+  (* (sprintf "%s is a directory!" name) *)
+
+  let bindings =
+    [(`Choose_cursor, fun _item -> raise (Failure "unimplemented"))]
 end
 
 module App = Caribou.Tree.Make (Example) (Caribou.Display.Fullscreen)

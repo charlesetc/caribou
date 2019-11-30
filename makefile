@@ -2,8 +2,8 @@
 # Executing
 
 # comment or uncomment to choose start
-# first: files
-first: directories
+first: files
+# first: directories
 
 
 simple: build_simple

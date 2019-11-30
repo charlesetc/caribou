@@ -1,4 +1,4 @@
-# Caribou Plan
+# Caribo Plan
 
 Caribou should be a UI for:
 
@@ -27,3 +27,28 @@ call a print or sexp\_of function on it.)
   view, even though it can be much shorter.
 * "List.nth\_exn 0 called on list of length 0" when list () returns []
 * Doesn't work when executed from vim with :make
+
+# Feature requests
+
+* Open up a sub-process on enter.
+* Make a Caribou.constant program
+
+# Things to use Caribou with
+
+* Files
+* Processes
+* OPAM packages
+* Wikipedia browsing
+  - (can add laziness)
+* Code review features
+* OCaml functions / documentation
+* Hg bookmarks, commits, branches, etc
+* Tmux sessions, windows, & panes
+* Finances and budgeting
+* Users and usergroups
+* Music library viewer
+* Application chooser
+* Bash completions
+* Note-taking
+* Recipes
+* Emails

@@ -1,15 +1,5 @@
 (** Caribou *)
 
-module type App = sig
-  type item
-
-  val show : item -> selected:bool -> Notty.image
-
-  val inspect : item -> Notty.image
-
-  val list : unit -> item list
-end
-
 module Display : sig
   module type S
 
@@ -18,8 +8,20 @@ module Display : sig
   module Tty : S
 end
 
-module Make (A : App) (D : Display.S) : sig
-  val run : unit -> unit Lwt.t
+module List : sig
+  module type App = sig
+    type item
+
+    val show : item -> selected:bool -> Notty.image
+
+    val bindings : (Action.t * (item -> unit Lwt.t)) list
+
+    val list : unit -> item list
+  end
+
+  module Make (A : App) (D : Display.S) : sig
+    val run : unit -> unit Lwt.t
+  end
 end
 
 module Tree : sig
@@ -30,7 +32,7 @@ module Tree : sig
 
     val children : item -> item list
 
-    val inspect : item -> Notty.image
+    val bindings : (Action.t * (item -> unit Lwt.t)) list
 
     val list : unit -> item list
   end
@@ -40,6 +42,14 @@ module Tree : sig
   end
 end
 
-module Notty_helpers : module type of Notty_helpers
+(** Additional functions provided for convenience. Enjoy! *)
+module Ext : sig
+  (** Notty-related *)
+  module Notty : sig
+    val image_of_string : Notty.attr -> string -> Notty.image
+  end
+end
 
-module Debug : module type of Debug
+module Debug :  sig
+  val log : ('a, unit, string, unit) format4 -> 'a
+end

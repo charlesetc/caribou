@@ -13,9 +13,14 @@ let move_cursor_back t =
   | Some l ->
       Notty_lwt.move_cursor (`By (0, -1 * l))
 
-let quit t =
-  let* () = move_cursor_back t in
-  Tty.show_cursor true ; Tty.echo true ; Tty.raw false ; Caml.exit 0
+let uninitialize t =
+  let+ () = move_cursor_back t in
+  for _ = 0 to Option.value t.last_height ~default:0 do
+    Caml.print_newline ()
+  done ;
+  Tty.show_cursor true ;
+  Tty.echo true ;
+  Tty.raw false
 
 let render t image =
   let* () = move_cursor_back t in
@@ -40,6 +45,6 @@ let events _ =
           (* if this happens, you'll probably want to make a recursive
            * function that waits until there's a key to send and only
            * then returns to Lwt_stream. *)
-          raise (Failure "unimplemented - hasn't happened yet")
+          raise (Failure "not implemented - hasn't happened yet")
       | #Notty.Unescape.event as event ->
           Some event)

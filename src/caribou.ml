@@ -17,7 +17,7 @@ module Tree = struct
 
     let run () =
       let state = State.init ~display:(Display.init ()) in
-      (* display the intial screen *)
+      (* display the initial screen *)
       let* () = State.render state in
       let events = Display.events state.display in
       Lwt_stream.iter_s
@@ -34,29 +34,35 @@ module Tree = struct
   end
 end
 
-module type App = sig
-  type item
+module List = struct
+  module type App = sig
+    type item
 
-  val show : item -> selected:bool -> Notty.image
+    val show : item -> selected:bool -> Notty.image
 
-  val inspect : item -> Notty.image
+    val bindings : (Action.t * (item -> unit Lwt.t)) list
 
-  val list : unit -> item list
-end
-
-module Make (A : App) (D : Display.S) = struct
-  module App : Tree.App = struct
-    include A
-
-    let show ~children:_ ~selected item = show ~selected item
-
-    let children _ = []
+    val list : unit -> item list
   end
 
-  module Made = Tree.Make (App) (D)
+  module Make (A : App) (D : Display.S) = struct
+    module App : Tree.App = struct
+      include A
 
-  let run = Made.run
+      let show ~children:_ ~selected item = show ~selected item
+
+      let children _ = []
+    end
+
+    module Made = Tree.Make (App) (D)
+
+    let run = Made.run
+  end
 end
 
-module Notty_helpers = Notty_helpers
+module Ext = struct
+  module Notty = Notty_ext
+  module Unix = Unix_ext
+end
+
 module Debug = Debug

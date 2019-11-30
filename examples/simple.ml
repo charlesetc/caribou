@@ -18,15 +18,17 @@ module Example = struct
     in
     Notty.I.string attr (sexp_of_item m |> Sexplib.Sexp.to_string)
 
-  let inspect m =
-    let text =
-      Unix.open_process_in (sprintf "ls %s 2>/dev/null | head" m.cwd)
-      |> In_channel.input_all
-    in
-    let attr = Notty.A.(bg blue) in
-    Caribou.Notty_helpers.image_of_string attr text
+  (* let inspect m = *)
+  (* let text = *)
+  (* Unix.open_process_in (sprintf "ls %s 2>/dev/null | head" m.cwd) *)
+  (* |> In_channel.input_all *)
+  (* in *)
+  (* let attr = Notty.A.(bg blue) in *)
+  (* Caribou.Notty_helpers.image_of_string attr text *)
+  let bindings =
+    [(`Choose_cursor, fun _item -> raise (Failure "unimplemented"))]
 end
 
-module App = Caribou.Make (Example) (Caribou.Display.Tty)
+module App = Caribou.List.Make (Example) (Caribou.Display.Tty)
 
 let () = Lwt_main.run (App.run ())

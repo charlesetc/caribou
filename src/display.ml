@@ -3,7 +3,7 @@ module type S = sig
 
   val init : unit -> t
 
-  val quit : t -> 'a Lwt.t
+  val uninitialize : t -> unit Lwt.t
 
   val render : t -> Notty.image -> unit Lwt.t
 
