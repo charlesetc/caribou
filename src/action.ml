@@ -1,4 +1,3 @@
-(* TODO: make this extensible by putting an action type in the app signature *)
 type t =
   [ `Cursor_down
   | `Cursor_up
@@ -11,6 +10,8 @@ type t =
   | `Page_down ]
 [@@deriving eq]
 
+(* TODO: make this extensible making each action a function
+   and this the default mapping *)
 let of_event = function
   | `Key (`ASCII 'k', []) | `Key (`Arrow `Up, []) ->
       Some `Cursor_up

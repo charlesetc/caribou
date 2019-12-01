@@ -40,9 +40,9 @@ module List = struct
 
     val show : item -> selected:bool -> Notty.image
 
-    val bindings : (Action.t * (item -> unit Lwt.t)) list
-
     val list : unit -> item list
+
+    val bindings : (Action.t * (item -> unit Lwt.t)) list
   end
 
   module Make (A : App) (D : Display.S) = struct

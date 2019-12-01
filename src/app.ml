@@ -5,7 +5,7 @@ module type S = sig
 
   val children : item -> item list
 
-  val bindings : (Action.t * (item -> unit Lwt.t)) list
-
   val list : unit -> item list
+
+  val bindings : (Action.t * (item -> unit Lwt.t)) list
 end
