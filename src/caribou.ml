@@ -25,8 +25,10 @@ module Tree = struct
           let* () =
             match Action.of_event event with
             | Some action ->
+                Debug.log "actn %s" (Sexp.to_string_hum (Action.sexp_of_t action));
                 State.update state action
             | None ->
+                Debug.log "no actn";
                 Lwt.return ()
           in
           State.render state)

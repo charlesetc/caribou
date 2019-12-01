@@ -8,6 +8,16 @@ module Display : sig
   module Tty : S
 end
 
+(* module Const : sig
+  module type App = sig
+    val image : Notty.image
+  end
+
+  module Make (A : App) (D : Display.S) : sig
+    val run : unit -> unit Lwt.t
+  end
+end *)
+
 module List : sig
   module type App = sig
     type item
@@ -47,6 +57,20 @@ module Ext : sig
   (** Notty-related *)
   module Notty : sig
     val image_of_string : Notty.attr -> string -> Notty.image
+  end
+
+  (** Unix-related *)
+  module Unix : sig
+    module Process_status : sig
+      type t = Unix.process_status =
+        | WEXITED of int
+        | WSIGNALED of int
+        | WSTOPPED of int
+
+      val to_string : t -> string
+    end
+
+    val exec : string -> string list -> Process_status.t
   end
 end
 

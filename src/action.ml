@@ -8,7 +8,7 @@ type t =
   | `Scroll_down
   | `Page_up
   | `Page_down ]
-[@@deriving eq]
+[@@deriving eq, sexp]
 
 (* TODO: make this extensible making each action a function
    and this the default mapping *)

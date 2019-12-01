@@ -15,8 +15,12 @@ module Example = struct
     I.string A.empty "* " <|> I.string a m
 
   let inspect item =
-    let+ _ = Lwt_process.exec ("vim", [| "vim"; item |]) in
-    ()
+    Lwt.return @@
+    match Caribou.Ext.Unix.exec "vim" [ item ] with
+    | WEXITED 0 -> ()
+    | s ->
+        Caribou.Debug.log "vim exited with error %s"
+          (Caribou.Ext.Unix.Process_status.to_string s)
 
   let bindings = [ (`Choose_cursor, inspect) ]
 end
