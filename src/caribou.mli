@@ -18,6 +18,41 @@ end
   end
 end *)
 
+module Key : sig
+  type mods = [ `Meta | `Ctrl | `Shift ] list
+
+  type t =
+    [ `Escape
+    | `Enter
+    | `Tab
+    | `Backspace
+    | `Insert
+    | `Delete
+    | `Home
+    | `End
+    | `Arrow of [ `Up | `Down | `Left | `Right ]
+    | `Page of [ `Up | `Down ]
+    | `Function of int
+    | `Uchar of Uchar.t
+    | `ASCII of char ]
+  [@@deriving sexp, eq]
+end
+
+module Action : sig
+  type t =
+    [ `Cursor_down
+    | `Cursor_up
+    | `Back
+    | `Quit
+    | `Scroll_up
+    | `Scroll_down
+    | `Page_up
+    | `Page_down ]
+  [@@deriving sexp]
+
+  val default_bindings : (Key.t * Key.mods * t) list
+end
+
 module List : sig
   module type App = sig
     type item
@@ -26,7 +61,8 @@ module List : sig
 
     val list : unit -> item list
 
-    val bindings : (Action.t * (item -> unit Lwt.t)) list
+    val bindings :
+      (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
   end
 
   module Make (A : App) (D : Display.S) : sig
@@ -44,7 +80,8 @@ module Tree : sig
 
     val list : unit -> item list
 
-    val bindings : (Action.t * (item -> unit Lwt.t)) list
+    val bindings :
+      (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
   end
 
   module Make (A : App) (D : Display.S) : sig
@@ -74,6 +111,6 @@ module Ext : sig
   end
 end
 
-module Debug :  sig
+module Debug : sig
   val log : ('a, unit, string, unit) format4 -> 'a
 end

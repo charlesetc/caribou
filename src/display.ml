@@ -7,5 +7,5 @@ module type S = sig
 
   val render : t -> Notty.image -> unit Lwt.t
 
-  val events : t -> [Notty.Unescape.event | `Resize of int * int] Lwt_stream.t
+  val events : t -> [ Notty.Unescape.event | `Resize of int * int ] Lwt_stream.t
 end

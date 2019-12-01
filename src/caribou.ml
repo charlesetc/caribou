@@ -15,6 +15,15 @@ module Tree = struct
   module Make (App : App.S) (Display : Display.S) = struct
     module State = State.Make (App) (Display)
 
+    let action_of_event event =
+      match event with
+      | `Key (key, mods) ->
+          List.find (App.bindings @ Action.default_bindings)
+            ~f:(fun (key', mods', _) ->
+              Key.equal key key' && Key.equal_mods mods mods')
+          |> Option.map ~f:(fun (_, _, action) -> action)
+      | _ -> None
+
     let run () =
       let state = State.init ~display:(Display.init ()) in
       (* display the initial screen *)
@@ -23,13 +32,9 @@ module Tree = struct
       Lwt_stream.iter_s
         (fun event ->
           let* () =
-            match Action.of_event event with
-            | Some action ->
-                Debug.log "actn %s" (Sexp.to_string_hum (Action.sexp_of_t action));
-                State.update state action
-            | None ->
-                Debug.log "no actn";
-                Lwt.return ()
+            match action_of_event event with
+            | Some action -> State.update state action
+            | None -> Lwt.return ()
           in
           State.render state)
         events
@@ -44,7 +49,8 @@ module List = struct
 
     val list : unit -> item list
 
-    val bindings : (Action.t * (item -> unit Lwt.t)) list
+    val bindings :
+      (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
   end
 
   module Make (A : App) (D : Display.S) = struct
@@ -68,3 +74,5 @@ module Ext = struct
 end
 
 module Debug = Debug
+module Key = Key
+module Action = Action

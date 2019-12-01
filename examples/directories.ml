@@ -11,10 +11,8 @@ module Example = struct
     |> List.map ~f:(fun entry ->
            let entry = Filename.concat dir entry in
            match Sys.is_directory entry with
-           | `Yes ->
-               Dir (entry, list entry)
-           | `Unknown | `No ->
-               File entry)
+           | `Yes -> Dir (entry, list entry)
+           | `Unknown | `No -> File entry)
 
   let list () = list "."
 
@@ -47,7 +45,7 @@ module Example = struct
   (* (sprintf "%s is a directory!" name) *)
 
   let bindings =
-    [(`Choose_cursor, fun _item -> raise (Failure "unimplemented"))]
+    [ (`Choose_cursor, fun _item -> raise (Failure "unimplemented")) ]
 end
 
 module App = Caribou.Tree.Make (Example) (Caribou.Display.Fullscreen)

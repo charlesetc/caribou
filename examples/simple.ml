@@ -1,13 +1,16 @@
 open Core
 
 module Example = struct
-  type item = {pid : int; cwd : string; progress : int * int} [@@deriving sexp]
+  type item = { pid : int; cwd : string; progress : int * int }
+  [@@deriving sexp]
 
   let list =
-    [ {pid = 1; cwd = "~/desk"; progress = (5, 5324)}
-    ; {pid = 0; cwd = "~/code"; progress = (2, 5324)}
-    ; {pid = 1; cwd = "~/write"; progress = (5, 5324)}
-    ; {pid = 2; cwd = "~/build"; progress = (23, 5324)} ]
+    [
+      { pid = 1; cwd = "~/desk"; progress = (5, 5324) };
+      { pid = 0; cwd = "~/code"; progress = (2, 5324) };
+      { pid = 1; cwd = "~/write"; progress = (5, 5324) };
+      { pid = 2; cwd = "~/build"; progress = (23, 5324) };
+    ]
 
   let list () = list
 
@@ -26,7 +29,7 @@ module Example = struct
   (* let attr = Notty.A.(bg blue) in *)
   (* Caribou.Notty_helpers.image_of_string attr text *)
   let bindings =
-    [(`Choose_cursor, fun _item -> raise (Failure "unimplemented"))]
+    [ (`Choose_cursor, fun _item -> raise (Failure "unimplemented")) ]
 end
 
 module App = Caribou.List.Make (Example) (Caribou.Display.Tty)

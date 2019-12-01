@@ -7,5 +7,6 @@ module type S = sig
 
   val list : unit -> item list
 
-  val bindings : (Action.t * (item -> unit Lwt.t)) list
+  val bindings :
+    (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
 end

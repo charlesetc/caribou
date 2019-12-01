@@ -1,35 +1,28 @@
 type t =
   [ `Cursor_down
   | `Cursor_up
-  | `Choose_cursor
   | `Back
   | `Quit
   | `Scroll_up
   | `Scroll_down
   | `Page_up
-  | `Page_down ]
-[@@deriving eq, sexp]
+  | `Page_down (* | `Custom_lwt of (unit -> unit Lwt.t) *) ]
+[@@deriving sexp]
 
-(* TODO: make this extensible making each action a function
-   and this the default mapping *)
-let of_event = function
-  | `Key (`ASCII 'k', []) | `Key (`Arrow `Up, []) ->
-      Some `Cursor_up
-  | `Key (`ASCII 'j', []) | `Key (`Arrow `Down, []) ->
-      Some `Cursor_down
-  | `Key (`Enter, []) | `Key (`ASCII 'M', [`Ctrl]) ->
-      Some `Choose_cursor
-  | `Key (`Backspace, []) | `Key (`Escape, []) ->
-      Some `Back
-  | `Key (`ASCII 'U', [`Ctrl]) | `Key (`Page `Up, []) ->
-      Some `Page_up
-  | `Key (`ASCII 'D', [`Ctrl]) | `Key (`Page `Down, []) ->
-      Some `Page_down
-  | `Key (`Arrow `Down, [`Ctrl]) | `Key (`ASCII 'N', [`Ctrl]) ->
-      Some `Scroll_down
-  | `Key (`Arrow `Up, [`Ctrl]) | `Key (`ASCII 'P', [`Ctrl]) ->
-      Some `Scroll_up
-  | `Key (`ASCII 'q', []) | `Key (`ASCII 'C', [`Ctrl]) ->
-      Some `Quit
-  | _ ->
-      None
+let default_bindings =
+  [
+    (`ASCII 'j', [], `Cursor_down);
+    (`ASCII 'k', [], `Cursor_up);
+    (`Arrow `Up, [], `Cursor_up);
+    (`Arrow `Down, [], `Cursor_down);
+    (`Arrow `Up, [ `Ctrl ], `Scroll_up);
+    (`Arrow `Down, [ `Ctrl ], `Scroll_down);
+    (`Page `Up, [], `Page_up);
+    (`Page `Down, [], `Page_down);
+    (`ASCII 'U', [ `Ctrl ], `Page_up);
+    (`ASCII 'D', [ `Ctrl ], `Page_up);
+    (`Backspace, [], `Back);
+    (`Escape, [], `Back);
+    (`ASCII 'q', [], `Quit);
+    (`ASCII 'C', [ `Ctrl ], `Quit);
+  ]

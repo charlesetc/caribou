@@ -13,9 +13,9 @@ module type Caribou_app = sig
 
   val show : item -> selected:bool -> Notty.image
 
-  val inspect : item -> Notty.image
-
   val list : unit -> item list
+
+  val bindings : (Key.t * Key.mods * [Action.t | `Custom of item -> unit]) list
 end
 ```
 

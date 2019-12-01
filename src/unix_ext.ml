@@ -13,7 +13,5 @@ end
 let exec prog args =
   let argv = Array.of_list (prog :: args) in
   match Unix.fork () with
-  | 0 ->
-      (try Unix.execvp prog argv
-       with _ -> Caml.exit 127)
+  | 0 -> ( try Unix.execvp prog argv with _ -> Caml.exit 127 )
   | pid -> Unix.waitpid [] pid |> snd
