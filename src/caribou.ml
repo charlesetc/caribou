@@ -9,11 +9,42 @@ module Display = struct
   module Tty : S = Tty_display
 end
 
-module Tree = struct
-  module type App = App.S
+module Const = struct
+  module type App = App.Const
 
-  module Make (App : App.S) (Display : Display.S) = struct
-    module State = State.Make (App) (Display)
+  module Make (App : App.Const) (Display : Display.S) = struct
+    module State = Const_state.Make (App) (Display)
+
+    let action_of_event event =
+      match event with
+      | `Key (key, mods) ->
+          List.find Action.default_bindings ~f:(fun (key', mods', _) ->
+              Key.equal key key' && Key.equal_mods mods mods')
+          |> Option.map ~f:(fun (_, _, action) -> action)
+      | _ -> None
+
+    let run () =
+      let state = State.init ~display:(Display.init ()) App.image in
+      (* display the initial screen *)
+      let* () = State.render state in
+      let events = Display.events state.display in
+      Lwt_stream.iter_s
+        (fun event ->
+          let* () =
+            match action_of_event event with
+            | Some action -> State.update state action
+            | None -> Lwt.return ()
+          in
+          State.render state)
+        events
+  end
+end
+
+module Tree = struct
+  module type App = App.Tree
+
+  module Make (App : App.Tree) (Display : Display.S) = struct
+    module State = Tree_state.Make (App) (Display)
 
     let action_of_event event =
       match event with

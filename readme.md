@@ -23,7 +23,7 @@ and generates a way for users to navigate and view these items.
 
 ## Performance
 
-The functions `show` and especially `list` should both be very performant.
+The user-defined implementations for `show` and especially `list` should both be very performant.
 If there is caching that needs to be done, that is left up to the
 application. `list`, for example, is called on every key press on the
 index page.

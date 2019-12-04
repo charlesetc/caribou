@@ -1,4 +1,5 @@
 open Core
+module Display = Caribou.Display.Tty
 
 module Example = struct
   type item = { pid : int; cwd : string; progress : int * int }
@@ -21,17 +22,30 @@ module Example = struct
     in
     Notty.I.string attr (sexp_of_item m |> Sexplib.Sexp.to_string)
 
-  (* let inspect m = *)
-  (* let text = *)
-  (* Unix.open_process_in (sprintf "ls %s 2>/dev/null | head" m.cwd) *)
-  (* |> In_channel.input_all *)
-  (* in *)
-  (* let attr = Notty.A.(bg blue) in *)
-  (* Caribou.Notty_helpers.image_of_string attr text *)
-  let bindings =
-    [ (`Choose_cursor, fun _item -> raise (Failure "unimplemented")) ]
+  let ls item =
+    let text =
+      Unix.open_process_in (sprintf "ls %s 2>/dev/null | head" item.cwd)
+      |> In_channel.input_all
+    in
+    let attr = Notty.A.(bg blue) in
+    Caribou.Ext.Notty.image_of_string attr text
+
+  (* TODO: pass in a context or something so you don't have to fork,
+   * and to keep track of the display.t *)
+  let inspect item =
+    let module A : Caribou.Const.App = struct
+      let image = ls item
+    end in
+    let module C = Caribou.Const.Make (A) (Display) in
+    match Caribou.Ext.Unix.in_subprocess (fun () -> C.run ()) with
+    | WEXITED 0 -> ()
+    | s ->
+        Caribou.Debug.log "caribou exited with error %s"
+          (Caribou.Ext.Unix.Process_status.to_string s)
+
+  let bindings = [ (`ASCII 'M', [ `Ctrl ], `Custom inspect) ]
 end
 
-module App = Caribou.List.Make (Example) (Caribou.Display.Tty)
+module App = Caribou.List.Make (Example) (Display)
 
 let () = Lwt_main.run (App.run ())

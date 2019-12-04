@@ -6,7 +6,7 @@ type t =
   | `Scroll_up
   | `Scroll_down
   | `Page_up
-  | `Page_down (* | `Custom_lwt of (unit -> unit Lwt.t) *) ]
+  | `Page_down ]
 [@@deriving sexp]
 
 let default_bindings =

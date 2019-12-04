@@ -8,16 +8,6 @@ module Display : sig
   module Tty : S
 end
 
-(* module Const : sig
-  module type App = sig
-    val image : Notty.image
-  end
-
-  module Make (A : App) (D : Display.S) : sig
-    val run : unit -> unit Lwt.t
-  end
-end *)
-
 module Key : sig
   type mods = [ `Meta | `Ctrl | `Shift ] list
 
@@ -51,6 +41,16 @@ module Action : sig
   [@@deriving sexp]
 
   val default_bindings : (Key.t * Key.mods * t) list
+end
+
+module Const : sig
+  module type App = sig
+    val image : Notty.image
+  end
+
+  module Make (A : App) (D : Display.S) : sig
+    val run : unit -> unit Lwt.t
+  end
 end
 
 module List : sig
@@ -108,6 +108,8 @@ module Ext : sig
     end
 
     val exec : string -> string list -> Process_status.t
+
+    val in_subprocess : (unit -> unit Lwt.t) -> Process_status.t
   end
 end
 

@@ -1,6 +1,6 @@
 open Base
 
-module Make (A : App.S) (D : Display.S) = struct
+module Make (A : App.Tree) (D : Display.S) = struct
   type t = int list
 
   let rec string_of_cursor = function

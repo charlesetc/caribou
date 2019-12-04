@@ -1,4 +1,4 @@
-module type S = sig
+module type Tree = sig
   type item
 
   val show : children:Notty.image -> selected:bool -> item -> Notty.image
@@ -9,4 +9,8 @@ module type S = sig
 
   val bindings :
     (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
+end
+
+module type Const = sig
+  val image : Notty.image
 end

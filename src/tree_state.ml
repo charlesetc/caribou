@@ -1,7 +1,7 @@
 open Import
 open Base
 
-module Make (A : App.S) (D : Display.S) = struct
+module Make (A : App.Tree) (D : Display.S) = struct
   module Cursor = Cursor.Make (A) (D)
 
   type t = {
@@ -34,8 +34,6 @@ module Make (A : App.S) (D : Display.S) = struct
     Caml.exit 0
 
   let update t (action : [ Action.t | `Custom of A.item -> unit ]) =
-    (* TODO: eventually make these expose these all
-     * as functions and provide a default keymapping. *)
     match action with
     | `Scroll_up -> Lwt.return @@ (t.scroll <- t.scroll + 1)
     | `Scroll_down -> Lwt.return @@ (t.scroll <- t.scroll - 1)
