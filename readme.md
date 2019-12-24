@@ -15,7 +15,7 @@ module type Caribou_app = sig
 
   val list : unit -> item list
 
-  val bindings : (Key.t * Key.mods * [Action.t | `Custom of item -> unit]) list
+  val bindings : (Key.t * Key.mods * Action.t) list
 end
 ```
 
