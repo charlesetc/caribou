@@ -3,8 +3,14 @@ open Notty.Infix
 module A = Notty.A
 module I = Notty.I
 
+module Display = Caribou.Display.Fullscreen ()
+
+module App = Caribou.App (Display)
+
+let ( let+ ) = Lwt.( >|= )
+
 module Example = struct
-  type item = File of string | Dir of string * item list
+  type item = File of string | Dir of string * item list [@@deriving show]
 
   let rec list dir =
     Sys.ls_dir dir
@@ -16,9 +22,11 @@ module Example = struct
 
   let list () = list "."
 
+  let string_of_item = function File s -> s | Dir (s, _) -> s
+
   let children = function File _ -> [] | Dir (_, c's) -> c's
 
-  let show ~children ~selected = function
+  let image_of_item ~children ~selected = function
     | File name ->
         let a = if selected then A.(st underline ++ fg magenta) else A.empty in
         I.string A.empty "* " <|> I.string a (Filename.basename name)
@@ -36,18 +44,18 @@ module Example = struct
         in
         topline <-> image <-> hr
 
-  (* let inspect = function *)
-  (* | File name -> *)
-  (* let text = Stdio.In_channel.read_all name in *)
-  (* Caribou.Notty_helpers.image_of_string A.empty text *)
-  (* | Dir (name, _) -> *)
-  (* Caribou.Notty_helpers.image_of_string A.empty *)
-  (* (sprintf "%s is a directory!" name) *)
+  let inspect item =
+    let filename = match item with File a -> a | Dir (a, _) -> a in
+    let+ status = Caribou.Ext.Unix.exec (module Display) "vim" [ filename ] in
+    match status with
+    | WEXITED 0 -> ()
+    | s ->
+        Caribou.Debug.log "vim exited with error %s"
+          (Caribou.Ext.Unix.Process_status.to_string s)
 
-  let bindings =
-    [ (`Choose_cursor, fun _item -> raise (Failure "unimplemented")) ]
+  let bindings = [ (`Enter, [], `Custom inspect) ]
 end
 
-module App = Caribou.Tree.Make (Example) (Caribou.Display.Fullscreen)
-
-let () = Lwt_main.run (App.run ())
+let () =
+  let module A = App.Tree.Make (Example) in
+  Lwt_main.run (A.run ())

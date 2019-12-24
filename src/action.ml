@@ -1,4 +1,4 @@
-type t =
+type 'item t =
   [ `Cursor_down
   | `Cursor_up
   | `Back
@@ -6,7 +6,8 @@ type t =
   | `Scroll_up
   | `Scroll_down
   | `Page_up
-  | `Page_down ]
+  | `Page_down
+  | `Custom of 'item -> unit Lwt.t ]
 [@@deriving sexp]
 
 let default_bindings =
@@ -20,7 +21,7 @@ let default_bindings =
     (`Page `Up, [], `Page_up);
     (`Page `Down, [], `Page_down);
     (`ASCII 'U', [ `Ctrl ], `Page_up);
-    (`ASCII 'D', [ `Ctrl ], `Page_up);
+    (`ASCII 'D', [ `Ctrl ], `Page_down);
     (`Backspace, [], `Back);
     (`Escape, [], `Back);
     (`ASCII 'q', [], `Quit);

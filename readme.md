@@ -9,9 +9,9 @@ Caribou takes a module that satisfies the following signature
 
 ```ocaml
 module type Caribou_app = sig
-  type item
+  type item [@@deriving show]
 
-  val show : item -> selected:bool -> Notty.image
+  val image_of_item : item -> selected:bool -> Notty.image
 
   val list : unit -> item list
 
@@ -23,10 +23,10 @@ and generates a way for users to navigate and view these items.
 
 ## Performance
 
-The user-defined implementations for `show` and especially `list` should both be very performant.
-If there is caching that needs to be done, that is left up to the
-application. `list`, for example, is called on every key press on the
-index page.
+The user-defined implementations for `image_of_item` and especially `list`
+should both be very performant. If there is caching that needs to be done, that
+is left up to the application. `list`, for example, is called on every key
+press on the index page.
 
 ## Future work
 

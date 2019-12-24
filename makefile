@@ -1,7 +1,7 @@
 # Executing
 
 # comment or uncomment to choose start
-first: files
+# first: files
 # first: directories
 
 

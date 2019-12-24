@@ -3,9 +3,9 @@
 module Display : sig
   module type S
 
-  module Fullscreen : S
+  module Fullscreen () : S
 
-  module Tty : S
+  module Tty () : S
 end
 
 module Key : sig
@@ -29,7 +29,7 @@ module Key : sig
 end
 
 module Action : sig
-  type t =
+  type 'item t =
     [ `Cursor_down
     | `Cursor_up
     | `Back
@@ -37,55 +37,49 @@ module Action : sig
     | `Scroll_up
     | `Scroll_down
     | `Page_up
-    | `Page_down ]
+    | `Page_down
+    | `Custom of 'item -> unit Lwt.t ]
   [@@deriving sexp]
 
-  val default_bindings : (Key.t * Key.mods * t) list
+  val default_bindings : (Key.t * Key.mods * 'a t) list
 end
 
-module Const : sig
-  module type App = sig
-    val image : Notty.image
+module App (D : Display.S) : sig
+  val const : Notty.image -> unit Lwt.t
+
+  module List : sig
+    module type S = sig
+      type item [@@deriving show]
+
+      val image_of_item : item -> selected:bool -> Notty.image
+
+      val list : unit -> item list
+
+      val bindings : (Key.t * Key.mods * item Action.t) list
+    end
+
+    module Make (A : S) : sig
+      val run : unit -> unit Lwt.t
+    end
   end
 
-  module Make (A : App) (D : Display.S) : sig
-    val run : unit -> unit Lwt.t
-  end
-end
+  module Tree : sig
+    module type S = sig
+      type item [@@deriving show]
 
-module List : sig
-  module type App = sig
-    type item
+      val image_of_item :
+        children:Notty.image -> selected:bool -> item -> Notty.image
 
-    val show : item -> selected:bool -> Notty.image
+      val children : item -> item list
 
-    val list : unit -> item list
+      val list : unit -> item list
 
-    val bindings :
-      (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
-  end
+      val bindings : (Key.t * Key.mods * item Action.t) list
+    end
 
-  module Make (A : App) (D : Display.S) : sig
-    val run : unit -> unit Lwt.t
-  end
-end
-
-module Tree : sig
-  module type App = sig
-    type item
-
-    val show : children:Notty.image -> selected:bool -> item -> Notty.image
-
-    val children : item -> item list
-
-    val list : unit -> item list
-
-    val bindings :
-      (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
-  end
-
-  module Make (A : App) (D : Display.S) : sig
-    val run : unit -> unit Lwt.t
+    module Make (A : S) : sig
+      val run : unit -> unit Lwt.t
+    end
   end
 end
 
@@ -107,9 +101,8 @@ module Ext : sig
       val to_string : t -> string
     end
 
-    val exec : string -> string list -> Process_status.t
-
-    val in_subprocess : (unit -> unit Lwt.t) -> Process_status.t
+    val exec :
+      (module Display.S) -> string -> string list -> Process_status.t Lwt.t
   end
 end
 

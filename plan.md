@@ -25,6 +25,10 @@ call a print or sexp\_of function on it.)
 
 * "List.nth\_exn 0 called on list of length 0" when list () returns []
 * Doesn't work when executed from vim with :make
+* If you are able to quickly type some text into stdin before
+  the tty display is able to accept them, it will be behind in
+  processing events, each time you input an event, it will process
+  the one previously inputed.
 
 # Feature requests
 

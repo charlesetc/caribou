@@ -6,3 +6,8 @@ include Notty.Infix
 let ( let* ) = ( >>= )
 
 let ( let+ ) = ( >|= )
+
+let ( |>* ) a f =
+  let* res = a in
+  let+ () = f () in
+  res

@@ -1,14 +1,15 @@
+(* Maybe call these configs? *)
 module type Tree = sig
-  type item
+  type item [@@deriving show]
 
-  val show : children:Notty.image -> selected:bool -> item -> Notty.image
+  val image_of_item :
+    children:Notty.image -> selected:bool -> item -> Notty.image
 
   val children : item -> item list
 
   val list : unit -> item list
 
-  val bindings :
-    (Key.t * Key.mods * [ Action.t | `Custom of item -> unit ]) list
+  val bindings : (Key.t * Key.mods * item Action.t) list
 end
 
 module type Const = sig

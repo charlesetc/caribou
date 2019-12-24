@@ -3,6 +3,10 @@ open Notty.Infix
 module A = Notty.A
 module I = Notty.I
 
+module Display = Caribou.Display.Tty ()
+
+module App = Caribou.App (Display)
+
 let ( let+ ) = Lwt.( >|= )
 
 module Sys = struct
@@ -10,18 +14,22 @@ module Sys = struct
 end
 
 module Example = struct
-  type item = string (* filename *)
+  type item = string [@@deriving show]
+  (** [item] is filename in this example *)
 
   let list () =
     Caml.Sys.readdir "." |> Array.to_list |> List.filter ~f:Sys.is_file
 
-  let show m ~selected =
+  let image_of_item m ~selected =
     let a = if selected then A.(st underline ++ fg magenta) else A.empty in
     I.string A.empty "* " <|> I.string a m
 
   let inspect item =
-    match Caribou.Ext.Unix.exec "vim" [ item ] with
-    | WEXITED 0 -> ()
+    let+ res = Caribou.Ext.Unix.exec (module Display) "vim" [ item ] in
+    match res with
+    | WEXITED 0 ->
+        Caribou.Debug.log "exited";
+        ()
     | s ->
         Caribou.Debug.log "vim exited with error %s"
           (Caribou.Ext.Unix.Process_status.to_string s)
@@ -29,6 +37,6 @@ module Example = struct
   let bindings = [ (`Enter, [], `Custom inspect) ]
 end
 
-module App = Caribou.List.Make (Example) (Caribou.Display.Fullscreen)
-
-let () = Lwt_main.run (App.run ())
+let () =
+  let module A = App.List.Make (Example) in
+  Lwt_main.run (A.run ())

@@ -1,9 +1,12 @@
 open Core
-module Display = Caribou.Display.Tty
+
+module App = Caribou.App (Caribou.Display.Tty ())
+
+module Debug = Caribou.Debug
 
 module Example = struct
   type item = { pid : int; cwd : string; progress : int * int }
-  [@@deriving sexp]
+  [@@deriving show, sexp]
 
   let list =
     [
@@ -15,37 +18,25 @@ module Example = struct
 
   let list () = list
 
-  let show m ~selected =
+  let image_of_item m ~selected =
     let attr =
-      if selected then Notty.A.(bg @@ rgb_888 ~r:53 ~g:242 ~b:160)
+      if selected then Notty.A.(bg (rgb_888 ~r:53 ~g:142 ~b:160) ++ fg black)
       else Notty.A.empty
     in
     Notty.I.string attr (sexp_of_item m |> Sexplib.Sexp.to_string)
 
-  let ls item =
+  let inspect item =
     let text =
       Unix.open_process_in (sprintf "ls %s 2>/dev/null | head" item.cwd)
       |> In_channel.input_all
     in
     let attr = Notty.A.(bg blue) in
-    Caribou.Ext.Notty.image_of_string attr text
+    let image = Caribou.Ext.Notty.image_of_string attr text in
+    App.const image
 
-  (* TODO: pass in a context or something so you don't have to fork,
-   * and to keep track of the display.t *)
-  let inspect item =
-    let module A : Caribou.Const.App = struct
-      let image = ls item
-    end in
-    let module C = Caribou.Const.Make (A) (Display) in
-    match Caribou.Ext.Unix.in_subprocess (fun () -> C.run ()) with
-    | WEXITED 0 -> ()
-    | s ->
-        Caribou.Debug.log "caribou exited with error %s"
-          (Caribou.Ext.Unix.Process_status.to_string s)
-
-  let bindings = [ (`ASCII 'M', [ `Ctrl ], `Custom inspect) ]
+  let bindings = [ (`Enter, [], `Custom inspect) ]
 end
 
-module App = Caribou.List.Make (Example) (Display)
-
-let () = Lwt_main.run (App.run ())
+let () =
+  let module A = App.List.Make (Example) in
+  Lwt_main.run (A.run ())
