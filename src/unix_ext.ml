@@ -17,6 +17,7 @@ let exec (module D : Display.S) prog args =
   match Unix.fork () with
   | 0 -> ( try Unix.execvp prog argv with _ -> Caml.exit 127 )
   | pid ->
-      let status = Unix.waitpid [] pid |> snd in
+      let status = try Unix.waitpid [] pid |> snd with Unix.Unix_error(_) ->
+        Process_status.WEXITED 0 in
       let+ () = D.reinitialize () in
       status

@@ -46,7 +46,7 @@ module Example = struct
 
   let inspect item =
     let filename = match item with File a -> a | Dir (a, _) -> a in
-    let+ status = Caribou.Ext.Unix.exec (module Display) "vim" [ filename ] in
+    let+ status = Caribou.Ext.Unix.exec (module Display) "less" [ filename ] in
     match status with
     | WEXITED 0 -> ()
     | s ->
