@@ -22,10 +22,10 @@ module Example = struct
 
   let image_of_item m ~selected =
     let a = if selected then A.(st underline ++ fg magenta) else A.empty in
-    I.string A.empty "* " <|> I.string a m
+    I.string ~attr:A.empty "* " <|> I.string ~attr:a m
 
   let inspect item =
-    let+ res = Caribou.Ext.Unix.exec (module Display) "vim" [ item ] in
+    let+ res = Caribou.Ext.Unix.exec (module Display) "nvim" [ item ] in
     match res with
     | WEXITED 0 ->
         Caribou.Debug.log "exited";

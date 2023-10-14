@@ -23,11 +23,11 @@ module Example = struct
       if selected then Notty.A.(bg (rgb_888 ~r:53 ~g:142 ~b:160) ++ fg black)
       else Notty.A.empty
     in
-    Notty.I.string attr (sexp_of_item m |> Sexplib.Sexp.to_string)
+    Notty.I.string ~attr (sexp_of_item m |> Sexplib.Sexp.to_string)
 
   let inspect item =
     let text =
-      Unix.open_process_in (sprintf "ls %s 2>/dev/null | head" item.cwd)
+      Core_unix.open_process_in (sprintf "ls %s 2>/dev/null | head" item.cwd)
       |> In_channel.input_all
     in
     let attr = Notty.A.(bg blue) in

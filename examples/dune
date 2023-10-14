@@ -1,17 +1,17 @@
 (executable
   (name files)
   (modules files)
-  (libraries caribou notty sexplib base)
+  (libraries caribou notty sexplib base core_unix)
   (preprocess (pps ppx_deriving.show ppx_sexp_conv)))
 
 (executable
   (name simple)
   (modules simple)
-  (libraries caribou notty sexplib core)
+  (libraries caribou notty sexplib core core_unix)
   (preprocess (pps ppx_deriving.show ppx_sexp_conv)))
 
 (executable
   (name directories)
   (modules directories)
-  (libraries caribou notty sexplib core)
+  (libraries caribou notty sexplib core core_unix core_unix.sys_unix)
   (preprocess (pps ppx_deriving.show ppx_sexp_conv)))
